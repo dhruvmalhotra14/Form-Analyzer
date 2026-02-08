@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cricket Player Form Analyzer</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        h2 { color: #2c3e50; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #219150; }
+        #result { margin-top: 25px; padding: 15px; border-radius: 8px; display: none; background: #fafafa; border: 1px solid #eee; }
+        /* Style results by class returned by AI */
+        .Good { color: #27ae60; font-weight: bold; }
+        .Average { color: #f39c12; font-weight: bold; }
+        .Poor { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🏏 Form Analyzer</h2>
+    <input type="number" id="avg" placeholder="Batting Average">
+    <input type="number" id="sr" placeholder="Strike Rate">
+    <input type="number" id="recent" placeholder="Recent Score (0-100)">
+    
+    <button onclick="getPrediction()">Analyze Player</button>
+
+    <div id="result">
+        <p id="prediction-text"></p>
+        <p id="confidence-text" style="font-size: 0.9em; color: #7f8c8d;"></p>
+    </div>
+</div>
+
+<script>
+    async function getPrediction() {
+        const avg = document.getElementById('avg').value;
+        const sr = document.getElementById('sr').value;
+        const recent = document.getElementById('recent').value;
+        const resultDiv = document.getElementById('result');
+
+        if(!avg || !sr || !recent) {
+            alert("Please fill in all fields!");
+            return;
+        }
+
+        try {
+            // Sends the data to your Flask server running at port 5000
+            const response = await fetch('http://127.0.0.1:5000/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ avg: avg, sr: sr, recent: recent })
+            });
+
+            const data = await response.json();
+            
+            resultDiv.style.display = "block";
+            const predText = document.getElementById('prediction-text');
+            const confText = document.getElementById('confidence-text');
+
+            // Formats the response using the 'form' and 'confidence' keys from your backend
+            predText.innerHTML = `Predicted Form: <span class="${data.form}">${data.form}</span>`;
+            confText.innerText = `Confidence Level: ${data.confidence}`;
+
+        } catch (error) {
+            alert("Error: Is your Python backend (app.py) running?");
+        }
+    }
+</script>
+</body>
+</html>
